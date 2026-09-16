@@ -1,0 +1,9 @@
+# Ignorar dependencias de Node
+node_modules/
+api-uvmove/node_modules/
+frontend-uvmove/node_modules/
+
+# Ignorar archivos ocultos con contraseñas o variables
+.env
+api-uvmove/.env
+frontend-uvmove/.env
