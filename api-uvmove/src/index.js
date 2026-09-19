@@ -175,3 +175,24 @@ app.post('/api/usuarios/sync', verificarToken, async (req, res) => {
         res.status(500).json({mensaje: 'ocurrio un error inesperado'});
     }
 });
+
+//endpoint que cancela una reserva activa
+app.delete('/api/prestamos/cancelar', verificarToken, async (req, res) => {
+    const { correo } = req.body; 
+
+    const queryEliminacion = `
+        DELETE FROM Prestamo
+        WHERE correoUsuario = ? AND (estatus = 'En espera' OR estatus = 'En viaje')
+    `;
+
+    try {
+        const conn = await ibmdb.open(connStr);
+        await conn.query(queryEliminacion, [correo]);
+        await conn.close();
+        
+        res.json({ mensaje: 'Reservación cancelada y liberada con éxito' });
+    } catch(error) {
+        console.error('error en la BD al cancelar', error);
+        res.status(500).json({ error: 'error interno del servidor' });
+    }
+});
