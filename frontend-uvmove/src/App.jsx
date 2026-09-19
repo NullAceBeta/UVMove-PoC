@@ -23,7 +23,7 @@ export default function App() {
           <Route path="/" element={!session ? <Login /> : <Navigate to="/mapa" />} />
           <Route path="/mapa" element={session ? <Mapa session={session} /> : <Navigate to="/" />} />
           <Route path="/vehiculos" element={session ? <DetalleVehiculo session={session} /> : <Navigate to="/" />} />
-          <Route path="/reserva-activa" element={session ? <ReservaActiva /> : <Navigate to="/" />} />
+          <Route path="/reserva-activa" element={session ? <ReservaActiva session={session} /> : <Navigate to="/" />} />
           <Route path="/viaje-en-curso" element={session ? <ViajeEnCurso session={session} /> : <Navigate to="/" />} />
           <Route path="/error-reserva" element={session ? <ErrorReserva /> : <Navigate to="/" />} />
         </Routes>
