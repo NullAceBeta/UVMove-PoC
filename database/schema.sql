@@ -9,14 +9,14 @@ DROP TABLE Usuario;
 
 --E N T I D A D E S  F U E R T E S--
 CREATE TABLE Usuario(
-    correo VARCHAR(50) PRIMARY KEY,
+    correo VARCHAR(50) NOT NULL PRIMARY KEY,
     nombre VARCHAR(50) NOT NULL,
 
     CHECK (correo LIKE '%@%')
 );
 
 CREATE TABLE Alumno(
-    correo VARCHAR(50) PRIMARY KEY,
+    correo VARCHAR(50) NOT NULL PRIMARY KEY,
     carrera VARCHAR(50) NOT NULL,
     semestre SMALLINT NOT NULL,
     promedio FLOAT NOT NULL,
@@ -29,7 +29,7 @@ CREATE TABLE Alumno(
 );
 
 CREATE TABLE Maestro(
-    correo VARCHAR(50) PRIMARY KEY,
+    correo VARCHAR(50) NOT NULL PRIMARY KEY,
     gradoAcademico VARCHAR(10) NOT NULL,
     cubiculo VARCHAR(20) NOT NULL,
     Departamento VARCHAR(30) NOT NULL,
@@ -61,9 +61,9 @@ CREATE TABLE Vehiculo(
 );
 
 CREATE TABLE PRESTAMO(
-    idPrestamo VARCHAR(10) PRIMARY KEY,
+    idPrestamo INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     fecha_hora_salida TIMESTAMP NOT NULL,
-    fecha_hora_devolucion TIMESTAMP NOT NULL,
+    fecha_hora_devolucion TIMESTAMP ,
     estatus VARCHAR(15) NOT NULL,
 
     correoUsuario VARCHAR(50) NOT NULL,
@@ -99,6 +99,6 @@ INSERT INTO Vehiculo (estado, marca, color, tipo, kilometraje, capacidad_Bateria
 ('Mantenimiento', 'Benotto', 'Rojo', 'Bicicleta', 350, 0, NULL);
 
 -- 5. Préstamos (Ejemplo de un viaje activo y uno terminado)
-INSERT INTO PRESTAMO (idPrestamo, fecha_hora_salida, fecha_hora_devolucion, estatus, correoUsuario, idVehiculo) VALUES 
-('P-00001', CURRENT_TIMESTAMP - 2 HOURS, CURRENT_TIMESTAMP - 1 HOUR, 'Pagado', 's24003973@estudiantes.uv.mx', 1),
-('P-00002', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP + 1 HOUR, 'En viaje', 'carlos.front@estudiantes.uv.mx', 2);
+INSERT INTO PRESTAMO (fecha_hora_salida, fecha_hora_devolucion, estatus, correoUsuario, idVehiculo) VALUES 
+(CURRENT_TIMESTAMP - 2 HOURS, CURRENT_TIMESTAMP - 1 HOUR, 'Pagado', 's24003973@estudiantes.uv.mx', 1),
+(CURRENT_TIMESTAMP, CURRENT_TIMESTAMP + 1 HOUR, 'En viaje', 'carlos.front@estudiantes.uv.mx', 2);
