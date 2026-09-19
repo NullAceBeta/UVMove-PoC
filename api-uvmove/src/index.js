@@ -196,3 +196,23 @@ app.delete('/api/prestamos/cancelar', verificarToken, async (req, res) => {
         res.status(500).json({ error: 'error interno del servidor' });
     }
 });
+
+//endpoint para obtener los vehículos disponibles
+app.get('/api/vehiculos', verificarToken, async (req, res) => {
+    const query = `
+        SELECT idVehiculo, estado, marca, color, tipo, kilometraje, capacidad_Bateria, carga
+        FROM Vehiculo
+        WHERE estado = 'Libre'
+    `;
+    
+    try {
+        const conn = await ibmdb.open(connStr);
+        const data = await conn.query(query);
+        await conn.close();
+        
+        res.json(data);
+    } catch(error) {
+        console.error("Error en la BD al consultar vehículos", error);
+        res.status(500).json({error: 'error interno del servidor'});
+    }
+});
