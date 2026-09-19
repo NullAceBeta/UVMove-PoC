@@ -1,2 +1,2 @@
 allowBuilds:
-  ibm_db: false
+  ibm_db: true

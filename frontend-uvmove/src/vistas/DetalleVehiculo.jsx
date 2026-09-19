@@ -5,8 +5,22 @@ export default function DetalleVehiculo({ session }) {
   const idUsuario = session?.user?.id
 
   const solicitarReserva = async (idVehiculo) => {
-    // Modo simulación activo para que pruebes las vistas
-    navigate('/reserva-activa')
+    try {
+      const urlAPI = 'http://localhost:3000/api/solicitarReserva' 
+      const response = await fetch(urlAPI, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id_usuario: idUsuario, id_vehiculo: idVehiculo })
+      })
+
+      if (!response.ok) throw new Error('Rechazo por Regla de Negocio 2')
+      
+      // Magia aquí: Pasamos el ID del vehículo a la siguiente pantalla
+      navigate('/reserva-activa', { state: { idVehiculo: idVehiculo } })
+      
+    } catch (error) {
+      navigate('/error-reserva')
+    }
   }
 
   return (
@@ -27,7 +41,6 @@ export default function DetalleVehiculo({ session }) {
         
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: '30px' }}>
           
-          {/* DISPONIBLES */}
           <div style={{ background: 'white', borderRadius: '15px', padding: '30px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '30px' }}>
               <div style={{ fontSize: '50px', background: '#f4f5f9', padding: '20px', borderRadius: '15px', marginRight: '25px' }}>🛴</div>
@@ -74,43 +87,6 @@ export default function DetalleVehiculo({ session }) {
               </div>
             </div>
             <button onClick={() => solicitarReserva('V-BI-15')} style={{ background: '#2e7d32', color: 'white', padding: '15px', border: 'none', borderRadius: '10px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer' }}>Reservar Vehículo</button>
-          </div>
-
-          {/* NO DISPONIBLES (Deshabilitados) */}
-          <div style={{ background: '#f9f9f9', borderRadius: '15px', padding: '30px', border: '1px dashed #ccc', display: 'flex', flexDirection: 'column', opacity: 0.7 }}>
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '30px' }}>
-              <div style={{ fontSize: '50px', background: '#eee', padding: '20px', borderRadius: '15px', marginRight: '25px', filter: 'grayscale(100%)' }}>🛴</div>
-              <div>
-                <h3 style={{ margin: '0 0 5px 0', color: '#999', fontSize: '22px' }}>Scooter Eléctrico</h3>
-                <p style={{ margin: '0 0 10px 0', color: '#999', fontSize: '14px' }}>Código: <strong>V-SC-08</strong></p>
-                <span style={{ background: '#ffebee', color: '#c62828', padding: '5px 12px', borderRadius: '15px', fontSize: '13px', fontWeight: 'bold' }}>🔴 En Uso</span>
-              </div>
-            </div>
-            <button disabled style={{ background: '#ccc', color: 'white', padding: '15px', border: 'none', borderRadius: '10px', fontSize: '16px', fontWeight: 'bold', cursor: 'not-allowed' }}>No Disponible</button>
-          </div>
-
-          <div style={{ background: '#f9f9f9', borderRadius: '15px', padding: '30px', border: '1px dashed #ccc', display: 'flex', flexDirection: 'column', opacity: 0.7 }}>
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '30px' }}>
-              <div style={{ fontSize: '50px', background: '#eee', padding: '20px', borderRadius: '15px', marginRight: '25px', filter: 'grayscale(100%)' }}>🚲</div>
-              <div>
-                <h3 style={{ margin: '0 0 5px 0', color: '#999', fontSize: '22px' }}>Bicicleta Standard</h3>
-                <p style={{ margin: '0 0 10px 0', color: '#999', fontSize: '14px' }}>Código: <strong>V-BI-04</strong></p>
-                <span style={{ background: '#ffebee', color: '#c62828', padding: '5px 12px', borderRadius: '15px', fontSize: '13px', fontWeight: 'bold' }}>🔴 En Uso</span>
-              </div>
-            </div>
-            <button disabled style={{ background: '#ccc', color: 'white', padding: '15px', border: 'none', borderRadius: '10px', fontSize: '16px', fontWeight: 'bold', cursor: 'not-allowed' }}>No Disponible</button>
-          </div>
-
-          <div style={{ background: '#f9f9f9', borderRadius: '15px', padding: '30px', border: '1px dashed #ccc', display: 'flex', flexDirection: 'column', opacity: 0.7 }}>
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '30px' }}>
-              <div style={{ fontSize: '50px', background: '#eee', padding: '20px', borderRadius: '15px', marginRight: '25px', filter: 'grayscale(100%)' }}>🛴</div>
-              <div>
-                <h3 style={{ margin: '0 0 5px 0', color: '#999', fontSize: '22px' }}>Scooter Eléctrico</h3>
-                <p style={{ margin: '0 0 10px 0', color: '#999', fontSize: '14px' }}>Código: <strong>V-SC-14</strong></p>
-                <span style={{ background: '#fff3cd', color: '#856404', padding: '5px 12px', borderRadius: '15px', fontSize: '13px', fontWeight: 'bold' }}>🔧 Mantenimiento</span>
-              </div>
-            </div>
-            <button disabled style={{ background: '#ccc', color: 'white', padding: '15px', border: 'none', borderRadius: '10px', fontSize: '16px', fontWeight: 'bold', cursor: 'not-allowed' }}>No Disponible</button>
           </div>
 
         </div>

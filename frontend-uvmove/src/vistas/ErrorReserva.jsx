@@ -7,8 +7,8 @@ export default function ErrorReserva() {
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#f4f5f9' }}>
       
       <header style={{ background: '#0a1945', padding: '15px 50px', display: 'flex', alignItems: 'center', color: 'white', gap: '30px' }}>
-        <button onClick={() => navigate(-1)} style={{ background: 'transparent', border: '1px solid white', color: 'white', padding: '8px 15px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
-          ⬅ Atrás
+        <button onClick={() => navigate('/mapa')} style={{ background: 'transparent', border: '1px solid white', color: 'white', padding: '8px 15px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
+          ⬅ Volver al Mapa
         </button>
         <h2 style={{ margin: 0, fontSize: '28px' }}><span style={{ color: 'white' }}>UV</span><span style={{ color: '#2e7d32' }}>Move</span></h2>
       </header>
@@ -21,13 +21,19 @@ export default function ErrorReserva() {
           </div>
           
           <h2 style={{ color: '#0a1945', marginBottom: '20px', fontSize: '32px' }}>Reserva Denegada</h2>
-          <p style={{ color: '#666', fontSize: '18px', marginBottom: '50px', lineHeight: '1.6' }}>
+          <p style={{ color: '#666', fontSize: '18px', marginBottom: '40px', lineHeight: '1.6' }}>
             El sistema detectó que <strong>ya cuentas con un viaje activo o una reserva pendiente</strong>.
           </p>
           
-          <button onClick={() => navigate('/mapa')} style={{ background: '#2e7d32', color: 'white', padding: '18px 40px', border: 'none', borderRadius: '15px', fontSize: '18px', fontWeight: 'bold', cursor: 'pointer', width: '100%' }}>
-            Aceptar y Volver al Mapa
-          </button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+            <button onClick={() => navigate('/reserva-activa')} style={{ background: '#2e7d32', color: 'white', padding: '18px 40px', border: 'none', borderRadius: '15px', fontSize: '18px', fontWeight: 'bold', cursor: 'pointer', width: '100%' }}>
+              Ver mi Reserva Actual
+            </button>
+            <button onClick={() => navigate('/mapa')} style={{ background: 'transparent', color: '#0a1945', padding: '15px', border: 'none', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', textDecoration: 'underline' }}>
+              Volver al Catálogo
+            </button>
+          </div>
+
         </div>
       </div>
     </div>
