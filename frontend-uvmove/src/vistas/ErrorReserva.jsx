@@ -3,6 +3,15 @@ import { useNavigate } from 'react-router-dom'
 export default function ErrorReserva() {
   const navigate = useNavigate()
 
+  const volverAlViajeActual = () => {
+    // Si existe la hora de inicio en memoria, significa que el reloj ya está corriendo
+    if (localStorage.getItem('viajeInicio')) {
+      navigate('/viaje-en-curso')
+    } else {
+      navigate('/reserva-activa')
+    }
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#f4f5f9' }}>
       
@@ -26,7 +35,7 @@ export default function ErrorReserva() {
           </p>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-            <button onClick={() => navigate('/reserva-activa')} style={{ background: '#2e7d32', color: 'white', padding: '18px 40px', border: 'none', borderRadius: '15px', fontSize: '18px', fontWeight: 'bold', cursor: 'pointer', width: '100%' }}>
+            <button onClick={volverAlViajeActual} style={{ background: '#2e7d32', color: 'white', padding: '18px 40px', border: 'none', borderRadius: '15px', fontSize: '18px', fontWeight: 'bold', cursor: 'pointer', width: '100%' }}>
               Ver mi Reserva Actual
             </button>
             <button onClick={() => navigate('/mapa')} style={{ background: 'transparent', color: '#0a1945', padding: '15px', border: 'none', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', textDecoration: 'underline' }}>
