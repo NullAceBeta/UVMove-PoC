@@ -14,6 +14,7 @@ Prueba de Concepto (PoC) para el sistema de movilidad universitaria "UV Move". E
 1. Levantar el contenedor de IBM Db2 mediante Docker y ejecutar los scripts SQL de la carpeta `database`.
 2. En la carpeta del backend (`api-uvmove`), ejecutar `npm install` y levantar la API con `node src/index.js` (Puerto 3000).
 3. En la carpeta del frontend (`frontend-uvmove`), instalar dependencias con `pnpm install` y ejecutar `pnpm run dev` (Puerto 5173).
+---
 
 ## Guía de Trazabilidad y Contratos
 
@@ -39,7 +40,7 @@ Prueba de Concepto (PoC) para el sistema de movilidad universitaria "UV Move". E
 * **Escenario Exitoso (Happy Path):** Un usuario sin viajes activos visualiza el catálogo de unidades filtrando por estatus 'Libre'. Solicita reservar la unidad. El backend valida, inserta el registro en `PRESTAMO` con estatus 'En espera' y actualiza el `Vehiculo` a 'En uso'. El frontend redirige a la vista del QR/Temporizador.
 * **Escenario de Rechazo (RN2):** El usuario, teniendo una reserva activa, intenta forzar la solicitud de un segundo vehículo. El endpoint `POST /api/prestamos` lee Db2, detecta el viaje previo, evalúa la RN2, aborta la transacción (evitando el `INSERT` y el `UPDATE`) y devuelve un código HTTP 400. La interfaz captura el error y muestra la vista "Reserva Denegada".
 * **Resultado Esperado:** Se mantiene la integridad transaccional en IBM Db2. Es imposible que existan préstamos dobles para un mismo usuario, y el catálogo refleja en tiempo real cuando un vehículo deja de estar disponible.   
-
+---
 
 ## ¿La implementación confirmó el diseño que propusimos o revelo una inconsistencia que fue necesario corregir?
 
