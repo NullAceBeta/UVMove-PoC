@@ -2,7 +2,6 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import ibmdb from 'ibm_db';
-import jwt from 'jsonwebtoken';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -10,7 +9,7 @@ const connStr = `DATABASE=${process.env.DB_DATABASE};HOSTNAME=${process.env.DB_H
 app.use(cors());
 app.use(express.json());
 
-const verificarToken = (req, res, next) => {
+const verificarToken = async (req, res, next) => {
 
     const autHeader = req.headers.authorization;
 
@@ -20,12 +19,24 @@ const verificarToken = (req, res, next) => {
     const token = autHeader.split(' ')[1];
 
     try{
-        const payload = jwt.verify(token, process.env.SUPABASE_JWT_SECRET);
+        const validacionSupabase = await fetch('https://wbgtsxlaadmnghzworch.supabase.co/auth/v1/user', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndiZ3RzeGxhYWRtbmdoendvcmNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk1ODU3NTEsImV4cCI6MjEwNTE2MTc1MX0.CjVJ28ZXIdXxhz2qzoX_Ld8pXwKNa8G0DbCI1xosSfQ'
+            }
+        });
 
-        req.usuarioAutenticado = payload;
+        if (!validacionSupabase.ok) {
+            throw new Error('Supabase declaró este token como inválido o expirado.');
+        }
 
+        const usuarioInfo = await validacionSupabase.json();
+        req.usuarioAutenticado = usuarioInfo; // Guardamos la info del usuario
+        
         next();
     } catch(error) {
+        console.error("❌ Error de JWT interceptado:", error.message);
         return res.status(403).json({error: 'Token invalido o expirado'});
     }
 };
@@ -51,7 +62,7 @@ app.get('/api/Usuarios/:correo/viaje-activo', async (req, res) => {
     const query = `
     SELECT idPrestamo, fecha_hora_salida, idVehiculo, estatus
     FROM Prestamo
-    WHERE correoUsuario = ? AND estatus = 'En viaje'
+    WHERE correoUsuario = ? AND estatus IN ('En espera', 'En viaje')
     `;
     
     try {
@@ -80,11 +91,14 @@ app.post('/api/prestamos', verificarToken, async (req, res) => {
     const queryValidacion = `
     SELECT idPrestamo, fecha_hora_salida, idVehiculo, estatus
     FROM Prestamo
-    WHERE correoUsuario = ? AND estatus = 'En viaje'
+    WHERE correoUsuario = ? AND estatus IN ('En espera', 'En viaje')
     `;
 
     const queryInsercion = `INSERT INTO PRESTAMO(fecha_hora_salida, estatus, correoUsuario, idVehiculo) VALUES
     (?, 'En espera', ?, ?)
+    `;
+    const queryUpdateVehiculo = `UPDATE Vehiculo SET estado = 'En uso'
+    WHERE idVehiculo = ?
     `;
 
     try {
@@ -96,6 +110,7 @@ app.post('/api/prestamos', verificarToken, async (req, res) => {
         res.status(400).json({error: 'el usuario ya tiene un viaje activo', viaje: validacion[0]});
     } else {
         await conn.query(queryInsercion, [hora_salida, correo, idVehiculo ]);
+        await conn.query(queryUpdateVehiculo, [idVehiculo]);
         await conn.close();
         res.json({mensaje: `Viaje asignado con éxito para las ${hora_salida} hrs`});
     }
@@ -109,10 +124,17 @@ app.post('/api/prestamos', verificarToken, async (req, res) => {
 app.post('/api/prestamos/finalizar', verificarToken, async (req, res) => {
     const {correo, hora_llegada} = req.body;
 
+    const liberarVehiculo = `
+    UPDATE Vehiculo
+    SET estado = 'Libre'
+    WHERE idVehiculo = (SELECT idVehiculo FROM Prestamo WHERE correoUsuario = ?
+    AND estatus IN ('En espera', 'En viaje'))
+    `;
+
     const actualizacion = `
         UPDATE Prestamo
         SET Fecha_Hora_Devolucion =  ?, estatus = 'Pagado'
-        WHERE correoUsuario = ? AND estatus = 'En viaje'
+        WHERE correoUsuario = ? AND estatus IN  ('En espera', 'En viaje')
     `;
 
     const selecccion = `
@@ -124,6 +146,7 @@ app.post('/api/prestamos/finalizar', verificarToken, async (req, res) => {
 
     try {
         const conn = await ibmdb.open(connStr);
+        await conn.query(liberarVehiculo, [correo]);
         await conn.query(actualizacion, [hora_llegada, correo]);
         const ejecucionSeleccion = await conn.query(selecccion, [correo]);
         await conn.close();
@@ -173,5 +196,53 @@ app.post('/api/usuarios/sync', verificarToken, async (req, res) => {
     } catch(error) {
         console.error(error, 'Ocurrio un error en la BD');
         res.status(500).json({mensaje: 'ocurrio un error inesperado'});
+    }
+});
+
+//endpoint que cancela una reserva activa
+app.delete('/api/prestamos/cancelar', verificarToken, async (req, res) => {
+    const { correo } = req.body; 
+
+    const liberarVehiculo = `
+    UPDATE Vehiculo 
+        SET estado = 'Libre' 
+        WHERE idVehiculo = (SELECT idVehiculo FROM Prestamo WHERE correoUsuario = ? 
+        AND (estatus = 'En espera' OR estatus = 'En viaje'))
+    `;
+
+    const queryEliminacion = `
+        DELETE FROM Prestamo
+        WHERE correoUsuario = ? AND (estatus = 'En espera' OR estatus = 'En viaje')
+    `;
+
+    try {
+        const conn = await ibmdb.open(connStr);
+        await conn.query(liberarVehiculo, [correo]);
+        await conn.query(queryEliminacion, [correo]);
+        await conn.close();
+        
+        res.json({ mensaje: 'Reservación cancelada y liberada con éxito' });
+    } catch(error) {
+        console.error('error en la BD al cancelar', error);
+        res.status(500).json({ error: 'error interno del servidor' });
+    }
+});
+
+//endpoint para obtener los vehículos disponibles
+app.get('/api/vehiculos', verificarToken, async (req, res) => {
+    const query = `
+        SELECT idVehiculo, estado, marca, color, tipo, kilometraje, capacidad_Bateria, carga
+        FROM Vehiculo
+    `;
+    
+    try {
+        const conn = await ibmdb.open(connStr);
+        const data = await conn.query(query);
+        await conn.close();
+        
+        res.json(data);
+    } catch(error) {
+        console.error("Error en la BD al consultar vehículos", error);
+        res.status(500).json({error: 'error interno del servidor'});
     }
 });

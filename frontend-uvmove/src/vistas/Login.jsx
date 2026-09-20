@@ -9,17 +9,49 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    
     if (isLogin) {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) alert('Error: ' + error.message)
     } else {
-      const { error } = await supabase.auth.signUp({ 
-        email, 
-        password,
-        options: { data: { nombre_usuario: nombre } } 
+      // 1. Extraemos 'data' además de 'error' para obtener la sesión
+      const { data, error } = await supabase.auth.signUp({
+         email,
+         password,
+        options: { data: { nombre_usuario: nombre } }
       })
-      if (error) alert('Error: ' + error.message)
-      else alert('¡Registro exitoso! Ya puedes iniciar sesión.')
+
+      if (error) {
+          alert('Error: ' + error.message)
+      } else {
+          // 2. Extraemos el JWT recién creado por Supabase
+          const token = data?.session?.access_token;
+
+          // 3. Disparamos la sincronización con tu API local
+          try {
+              const res = await fetch('http://localhost:3000/api/usuarios/sync', {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${token}` // Pasamos el candado verificarToken
+                  },
+                  // Enviamos exactamente los campos que tu req.body espera
+                  body: JSON.stringify({
+                      correoUsuario: email,
+                      nombre: nombre
+                  })
+              });
+
+              if(res.ok) {
+                  alert('¡Registro y sincronización exitosos! Ya puedes iniciar sesión.')
+              } else {
+                  console.error('La API rebotó la sincronización');
+              }
+              
+          } catch (err) {
+              console.error('Error de red al intentar sincronizar con Db2:', err);
+          }
+      }
     }
   }
 
@@ -52,6 +84,7 @@ export default function Login() {
             </button>
           </form>
         </div>
+
       </div>
     </div>
   )

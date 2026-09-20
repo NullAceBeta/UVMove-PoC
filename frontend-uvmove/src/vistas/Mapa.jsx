@@ -7,17 +7,25 @@ export default function Mapa({ session }) {
   const correoUsuario = session?.user?.email
   const nombreDinamico = session?.user?.user_metadata?.nombre_usuario || correoUsuario?.split('@')[0] || 'Estudiante'
   
+  // Extraemos el JWT a nivel de componente para usarlo en todos los fetch
+  const token = session?.access_token 
+  
   const [vehiculosDisponibles, setVehiculosDisponibles] = useState(0)
 
   useEffect(() => {
     // La lógica de Carlos para validar si hay viaje y contar vehículos
     const validarViajeDb2 = async () => {
       try {
-        const res = await fetch(`http://localhost:3000/api/Usuarios/${correoUsuario}/viaje-activo`)
+        // Restauramos el localhost y pasamos el JWT en los Headers
+        const res = await fetch(`http://localhost:3000/api/Usuarios/${correoUsuario}/viaje-activo`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+        
         if (res.ok) {
           const data = await res.json()
           if (data.tieneViaje) {
-            navigate('/viaje-en-curso', { state: { idVehiculo: data.id_vehiculo } })
+            // Leemos IDVEHICULO en mayúsculas desde el objeto 'viaje' que devuelve el index.js
+            navigate('/viaje-en-curso', { state: { idVehiculo: data.viaje.IDVEHICULO } })
           }
         }
       } catch (error) {
@@ -27,21 +35,26 @@ export default function Mapa({ session }) {
 
     const cargarConteoVehiculos = async () => {
       try {
-        const res = await fetch('http://localhost:3000/api/vehiculos')
+        // Corregida la ruta, el signo de dólar en la interpolación y el JWT
+        const res = await fetch('http://localhost:3000/api/vehiculos', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
         if (res.ok) {
           const data = await res.json()
-          setVehiculosDisponibles(data.filter(v => v.estado === 'Disponible').length)
+          // Validamos contra la columna en mayúsculas de Db2 y el estado 'Libre'
+          setVehiculosDisponibles(data.filter(v => v.ESTADO === 'Libre').length)
         }
       } catch (error) {
         console.error("Esperando conexión con backend...", error)
       }
     }
 
-    if (correoUsuario) {
+    if (correoUsuario && token) {
       validarViajeDb2()
       cargarConteoVehiculos()
     }
-  }, [correoUsuario, navigate])
+  }, [correoUsuario, navigate, token])
 
   const handleCerrarSesion = async () => {
     await supabase.auth.signOut()
@@ -53,6 +66,7 @@ export default function Mapa({ session }) {
       
       {/* Tu Header Original */}
       <header style={{ background: '#0a1945', padding: '15px 50px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'white', boxShadow: '0 4px 10px rgba(0,0,0,0.1)', zIndex: 10 }}>
+<<<<<<< HEAD
         <h2 style={{ margin: 0, fontSize: '28px' }}>
           <span style={{ color: 'white' }}>UV</span><span style={{ color: '#2e7d32' }}>Move</span>
         </h2>
@@ -61,6 +75,10 @@ export default function Mapa({ session }) {
           <input type="text" list="estaciones-list" placeholder="🔍 Buscar otra estación..." style={{ width: '100%', padding: '12px 20px', borderRadius: '25px', border: 'none', outline: 'none', fontSize: '15px' }} />
         </div>
 
+=======
+        <h2 style={{ margin: 0, fontSize: '28px' }}><span style={{ color: 'white' }}>UV</span><span style={{ color: '#2e7d32' }}>Move</span></h2>
+        
+>>>>>>> 2221a2b4fdb135880720bed1b44eb14882313303
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
           <div style={{ textAlign: 'right' }}>
             <p style={{ margin: 0, fontSize: '15px', fontWeight: 'bold' }}>{nombreDinamico}</p>
@@ -73,6 +91,7 @@ export default function Mapa({ session }) {
 
       {/* Tu Diseño del Mapa Original */}
       <div style={{ padding: '30px 50px', flex: 1, display: 'flex', gap: '30px', maxWidth: '1400px', margin: '0 auto', width: '100%' }}>
+<<<<<<< HEAD
         <div style={{ flex: 2, background: '#c8e6c9', backgroundImage: 'radial-gradient(#a5d6a7 15%, transparent 15%), radial-gradient(#a5d6a7 15%, transparent 15%)', backgroundSize: '60px 60px', backgroundPosition: '0 0, 30px 30px', borderRadius: '20px', position: 'relative', minHeight: '600px', boxShadow: 'inset 0 0 30px rgba(0,0,0,0.1)', border: '4px solid white' }}>
           <div style={{ position: 'absolute', top: '20px', right: '20px', background: 'white', padding: '10px 15px', borderRadius: '20px', boxShadow: '0 4px 10px rgba(0,0,0,0.1)', fontWeight: 'bold', color: '#0a1945', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ display: 'inline-block', width: '12px', height: '12px', background: '#2e7d32', borderRadius: '50%' }}></span>
@@ -80,6 +99,14 @@ export default function Mapa({ session }) {
           </div>
           <div style={{ position: 'absolute', top: '45%', left: '45%', fontSize: '50px' }}>📍</div>
           <div style={{ background: 'white', padding: '10px 20px', borderRadius: '10px', fontSize: '16px', fontWeight: 'bold', position: 'absolute', top: '55%', left: '42%', boxShadow: '0 4px 10px rgba(0,0,0,0.1)', color: '#0a1945' }}>Estación USBI</div>
+=======
+        
+        <div style={{ flex: 2, background: '#c8e6c9', borderRadius: '20px', position: 'relative', minHeight: '600px', border: '4px solid white' }}>
+          <div style={{ position: 'absolute', top: '20px', right: '20px', background: 'white', padding: '10px 15px', borderRadius: '20px', fontWeight: 'bold', color: '#0a1945' }}>
+              📍 {vehiculosDisponibles} Vehículos Libres
+          </div>
+          <div style={{ position: 'absolute', top: '45%', left: '45%', fontSize: '50px' }}>🗺️</div>
+>>>>>>> 2221a2b4fdb135880720bed1b44eb14882313303
         </div>
 
         <div style={{ flex: 1, background: 'white', borderRadius: '20px', padding: '40px', boxShadow: '0 10px 30px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
@@ -90,6 +117,7 @@ export default function Mapa({ session }) {
             Consultar vehículos
           </button>
         </div>
+
       </div>
     </div>
   )
