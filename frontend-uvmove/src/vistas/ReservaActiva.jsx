@@ -7,10 +7,8 @@ export default function ReservaActiva({ session }) {
   const correoUsuario = session?.user?.email
   const token = session?.access_token 
   
-  // Convertimos el ID a texto (String) desde el primer momento para evitar errores con Db2
   const idVehiculo = String(location.state?.idVehiculo || 'No identificado')
   
-  // Variables visuales del compañero (ahora .includes() funcionará perfecto)
   const iconoVehiculo = idVehiculo.includes('BI') ? '🚲' : '🛴'
   const tipoVehiculo = idVehiculo.includes('BI') ? 'Bicicleta' : 'Scooter Eléctrico'
   
@@ -25,7 +23,6 @@ export default function ReservaActiva({ session }) {
   const segundos = tiempoFaltante % 60
   const tiempoFormateado = `${minutos}:${segundos < 10 ? '0' : ''}${segundos}`
 
-  // Lógica del backend intacta
   const cancelarReserva = async () => {
     const confirmar = window.confirm("¿Seguro de que deseas cancelar tu reserva actual?")
     if (confirmar) {

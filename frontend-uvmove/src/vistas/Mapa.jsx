@@ -20,13 +20,14 @@ export default function Mapa({ session }) {
         if (res.ok) {
           const data = await res.json()
           if (data.tieneViaje) {
-             // Candado de rutas integrado
-           /* if (data.viaje.ESTATUS === 'En espera') {
-                navigate('/reserva-activa', { state: { idVehiculo: data.viaje.IDVEHICULO }, replace: true })
-            } else {
-                navigate('/viaje-en-curso', { state: { idVehiculo: data.viaje.IDVEHICULO }, replace: true })
-            }
-                */
+             // Candado temporalmente desactivado para grabar
+             /*
+             if (data.viaje.ESTATUS === 'En espera') {
+                 navigate('/reserva-activa', { state: { idVehiculo: data.viaje.IDVEHICULO }, replace: true })
+             } else {
+                 navigate('/viaje-en-curso', { state: { idVehiculo: data.viaje.IDVEHICULO }, replace: true })
+             }
+             */
           }
         }
       } catch (error) {
