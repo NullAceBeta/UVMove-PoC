@@ -4,14 +4,14 @@ import { useState, useEffect } from 'react'
 export default function ViajeEnCurso({ session }) {
   const navigate = useNavigate()
   const location = useLocation()
-  
   const correoUsuario = session?.user?.email || ''
+  const token = session?.access_token // Extraemos el token para la API
   const nombreDinamico = session?.user?.user_metadata?.nombre_usuario || correoUsuario.split('@')[0] || 'Usuario'
   
-  // Rescatamos el ID del vehículo de la navegación o de la memoria local
+  // Rescatamos el ID del vehículo y lo forzamos a texto para evitar errores
   const vehiculoGuardado = localStorage.getItem('viajeVehiculo')
-  const idVehiculo = location.state?.idVehiculo || vehiculoGuardado || 'No identificado'
-
+  const idVehiculo = String(location.state?.idVehiculo || vehiculoGuardado || 'No identificado')
+  
   const [segundosTranscurridos, setSegundosTranscurridos] = useState(0)
   const tarifaPorMinuto = 2.00
 
@@ -32,7 +32,8 @@ export default function ViajeEnCurso({ session }) {
     const actualizarReloj = () => {
       const ahora = Date.now()
       const diferenciaSegundos = Math.floor((ahora - parseInt(horaInicio)) / 1000)
-      setSegundosTranscurridos(diferanciaSegundos)
+      // CORRECCIÓN 1: Corregido el typo "diferancia" -> "diferencia"
+      setSegundosTranscurridos(diferenciaSegundos)
     }
 
     actualizarReloj() // Llamada inicial
@@ -47,10 +48,16 @@ export default function ViajeEnCurso({ session }) {
 
   const finalizarViajeDb = async () => {
     try {
+      // CORRECCIÓN 2: Formateamos la hora y agregamos el Token JWT al fetch
+      const horaActual = new Date().toISOString().slice(0, 19).replace('T', ' ');
+      
       await fetch('http://localhost:3000/api/prestamos/finalizar', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ correo: correoUsuario, id_vehiculo: idVehiculo })
+        headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ correo: correoUsuario, hora_llegada: horaActual })
       })
       
       // Limpiamos la memoria del navegador para el próximo viaje
@@ -69,7 +76,7 @@ export default function ViajeEnCurso({ session }) {
       
       <header style={{ background: '#0a1945', padding: '15px 50px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'white' }}>
         <button onClick={() => navigate('/mapa')} style={{ background: 'transparent', border: '1px solid white', color: 'white', padding: '8px 15px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
-          ⬅ Regresar al Mapa
+            Regresar al Mapa
         </button>
         <h2 style={{ margin: 0, fontSize: '28px' }}><span style={{ color: 'white' }}>UV</span><span style={{ color: '#2e7d32' }}>Move</span></h2>
         <div style={{ width: '130px' }}></div> {/* Espaciador para centrar el logo */}
@@ -85,8 +92,8 @@ export default function ViajeEnCurso({ session }) {
             {tiempoFormateado}
           </div>
           
-          <div style={{ width: '100px', height: '100px', background: '#eee', borderRadius: '50%', margin: '0 auto 40px auto', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', color: '#666', fontWeight: 'bold' }}>
-            ⏱ Reloj
+          <div style={{ width: '100px', height: '100px', background: '#eee', borderRadius: '50%', margin: '0 auto 40px auto', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '40px' }}>
+              ⏱️
           </div>
 
           <h2 style={{ color: '#333', fontSize: '18px', margin: '0 0 10px 0', textTransform: 'uppercase' }}>ID del Vehículo en uso</h2>
@@ -113,7 +120,6 @@ export default function ViajeEnCurso({ session }) {
               Finalizar Viaje
             </button>
           </div>
-
         </div>
       </div>
     </div>
