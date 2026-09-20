@@ -1,4 +1,4 @@
-# UV Move - Prueba de Concepto (PoC) 🛴🚲
+# UV Move - Prueba de Concepto (PoC) 
 
 
 ## Descripción del Proyecto
